@@ -168,7 +168,7 @@ func (s NWSAlertsService) GetWeatherAlerts(ctx context.Context, lat, long string
 	retval.City = pointsResponse.Properties.RelativeLocation.Properties.City
 
 	//	Call the alerts service and get alerts for the parsed zone
-	alertsServiceUrl := fmt.Sprintf("https://api.weather.gov/alerts/active/zone/%s/", retval.NWSZone)
+	alertsServiceUrl := fmt.Sprintf("https://api.weather.gov/alerts/active/zone/%s", retval.NWSZone)
 	alertClientRequest, err := http.NewRequest("GET", alertsServiceUrl, nil)
 	if err != nil {
 		seg.AddError(err)
