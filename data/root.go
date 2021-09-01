@@ -26,6 +26,6 @@ type AlertItem struct {
 	AreaDescription string    `json:"area_description"` // Affected Area description
 	Sender          string    `json:"sender"`           // Sender (email) of the event
 	SenderName      string    `json:"sendername"`       // Sender name of the event
-	Effective       time.Time `json:"effective"`        // Event effective start time
-	Expiration      time.Time `json:"expiration"`       // Event effective end time
+	Start           time.Time `json:"start"`            // Event start time
+	End             time.Time `json:"end"`              // Event end time
 }
