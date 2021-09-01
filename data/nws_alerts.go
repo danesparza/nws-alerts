@@ -14,9 +14,8 @@ import (
 
 // NWSPointsResponse defines the expected response format from the NWS points service
 type NWSPointsResponse struct {
-	Context  []interface{} `json:"@context"`
-	ID       string        `json:"id"`
-	Type     string        `json:"type"`
+	ID       string `json:"id"`
+	Type     string `json:"type"`
 	Geometry struct {
 		Type        string    `json:"type"`
 		Coordinates []float64 `json:"coordinates"`
@@ -62,12 +61,10 @@ type NWSPointsResponse struct {
 
 // NWSAlertsResponse defines the expected response from the NWS alerts service (for a specific zone)
 type NWSAlertsResponse struct {
-	Context  []interface{} `json:"@context"`
-	Type     string        `json:"type"`
+	Type     string `json:"type"`
 	Features []struct {
-		ID         string      `json:"id"`
-		Type       string      `json:"type"`
-		Geometry   interface{} `json:"geometry"`
+		ID         string `json:"id"`
+		Type       string `json:"type"`
 		Properties struct {
 			ID       string `json:"@id"`
 			Type     string `json:"@type"`
