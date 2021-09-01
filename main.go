@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-xray-sdk-go/xray"
@@ -29,13 +30,12 @@ func HandleRequest(ctx context.Context, msg Message) (data.AlertReport, error) {
 	xray.Configure(xray.Config{LogLevel: "trace"})
 	ctx, seg := xray.BeginSegment(ctx, "nws-alerts-lambda-handler")
 
-	//	Set the services to call with
-	services := []data.AlertService{
-		data.NWSAlertsService{},
+	service := data.NWSAlertsService{}
+	response, err := service.GetWeatherAlerts(ctx, msg.Latitude, msg.Longitude)
+	if err != nil {
+		seg.Close(err)
+		log.Fatalf("problem getting weather alerts: %v", err)
 	}
-
-	//	Call the helper method to get the report:
-	response := data.GetWeatherAlerts(ctx, services, msg.Latitude, msg.Longitude)
 
 	//	Set the service version information:
 	response.Version = fmt.Sprintf("%s.%s", BuildVersion, CommitID)

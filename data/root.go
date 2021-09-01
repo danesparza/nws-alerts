@@ -1,10 +1,7 @@
 package data
 
 import (
-	"context"
 	"time"
-
-	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
 // AlertReport defines an alert report
@@ -31,43 +28,4 @@ type AlertItem struct {
 	SenderName      string    `json:"sendername"`       // Sender name of the event
 	Effective       time.Time `json:"effective"`        // Event effective start time
 	Expiration      time.Time `json:"expiration"`       // Event effective end time
-}
-
-// AlertService is the interface for all services that can fetch weather alerts
-type AlertService interface {
-	// GetWeatherReport gets the weather report
-	GetWeatherAlerts(ctx context.Context, lat, long string) (AlertReport, error)
-}
-
-// GetWeatherAlerts calls all services in parallel and returns the first result
-func GetWeatherAlerts(ctx context.Context, services []AlertService, lat, long string) AlertReport {
-
-	ch := make(chan AlertReport, 1)
-
-	//	Start the service segment
-	ctx, seg := xray.BeginSubsegment(ctx, "alert-report")
-	defer seg.Close(nil)
-
-	//	For each passed service ...
-	for _, service := range services {
-
-		//	Launch a goroutine for each service...
-		go func(c context.Context, s AlertService, la, lo string) {
-
-			//	Get its pollen report ...
-			result, err := s.GetWeatherAlerts(c, la, lo)
-
-			//	As long as we don't have an error, return what we found on the result channel
-			if err == nil {
-				select {
-				case ch <- result:
-				default:
-				}
-			}
-		}(ctx, service, lat, long)
-
-	}
-
-	//	Return the first result passed on the channel
-	return <-ch
 }

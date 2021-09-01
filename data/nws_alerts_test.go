@@ -28,23 +28,3 @@ func TestNWSAlerts_GetWeatherAlerts_ReturnsValidData(t *testing.T) {
 	t.Logf("Returned object: %+v", response)
 
 }
-
-func TestNWSAlerts_GenericGetWeatherAlerts_ReturnsValidData(t *testing.T) {
-	//	Arrange
-	lat := "41.256989522114395"
-	long := "-70.11151820621481"
-	ctx := context.Background()
-	ctx, seg := xray.BeginSegment(ctx, "unit-test")
-	defer seg.Close(nil)
-
-	//	Set the services to call with
-	services := []data.AlertService{
-		data.NWSAlertsService{},
-	}
-
-	//	Call the helper method to get the report:
-	response := data.GetWeatherAlerts(ctx, services, lat, long)
-
-	t.Logf("Returned object: %+v", response)
-
-}
