@@ -156,7 +156,7 @@ func (s NWSAlertsService) GetWeatherAlerts(ctx context.Context, lat, long string
 	}
 
 	//	Add the points response to the request metadata
-	xray.AddMetadata(ctx, "PointsResult", pointsResponse)
+	seg.AddMetadata("PointsResponse", pointsResponse)
 
 	//	Parse the zone information and add information to the returned report
 	retval.Longitude = pointsResponse.Geometry.Coordinates[0]
@@ -194,6 +194,8 @@ func (s NWSAlertsService) GetWeatherAlerts(ctx context.Context, lat, long string
 		seg.AddError(err)
 		return retval, fmt.Errorf("problem decoding the response from the NWS alerts service: %v", err)
 	}
+
+	seg.AddMetadata("AlertsResponse", alertsResponse)
 
 	//	Compile our report
 	for _, item := range alertsResponse.Features {
