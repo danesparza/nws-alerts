@@ -207,7 +207,7 @@ func (s NWSAlertsService) GetWeatherAlerts(ctx context.Context, lat, long string
 			Sender:          item.Properties.Sender,
 			SenderName:      item.Properties.SenderName,
 			Effective:       item.Properties.Effective,
-			Expiration:      item.Properties.Expires,
+			Expiration:      item.Properties.Ends,
 		}
 
 		retval.Alerts = append(retval.Alerts, alertItem)
