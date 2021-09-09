@@ -123,6 +123,7 @@ func (s NWSAlertsService) GetWeatherAlerts(ctx context.Context, lat, long string
 
 	//	Our return value
 	retval := AlertReport{}
+	retval.Alerts = []AlertItem{} // Initialize the array
 
 	//	First, call the points service for the lat/long specified
 	pointsUrl := fmt.Sprintf("https://api.weather.gov/points/%s,%s", lat, long)
