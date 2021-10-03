@@ -6,15 +6,14 @@ import (
 
 // AlertReport defines an alert report
 type AlertReport struct {
-	Latitude               float64     `json:"latitude"`  // Latitude
-	Longitude              float64     `json:"longitude"` // Longitude
-	City                   string      `json:"city"`      // City name
-	State                  string      `json:"state"`     // State name
-	NWSZone                string      `json:"zone"`      // National weather service zone
-	NWSZoneURL             string      `json:"zoneurl"`   // National weather service zone URL (for more information)
-	ActiveAlertsForZoneURL string      `json:"alertsurl"` // URL to see active alerts on the NWS website for the current NWS zone
-	Alerts                 []AlertItem `json:"alerts"`    // Active alerts
-	Version                string      `json:"version"`   // Service version
+	Latitude                 float64     `json:"latitude"`  // Latitude
+	Longitude                float64     `json:"longitude"` // Longitude
+	City                     string      `json:"city"`      // City name
+	State                    string      `json:"state"`     // State name
+	NWSCounty                string      `json:"county"`    // National weather service county
+	ActiveAlertsForCountyURL string      `json:"alertsurl"` // URL to see active alerts on the NWS website for the current NWS zone
+	Alerts                   []AlertItem `json:"alerts"`    // Active alerts
+	Version                  string      `json:"version"`   // Service version
 }
 
 type AlertItem struct {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-xray-sdk-go/xray"
@@ -50,8 +51,8 @@ type NWSPointsResponse struct {
 				} `json:"bearing"`
 			} `json:"properties"`
 		} `json:"relativeLocation"`
-		ForecastZone    string `json:"forecastZone"` // Forecast zone
-		County          string `json:"county"`
+		ForecastZone    string `json:"forecastZone"`
+		County          string `json:"county"` // County
 		FireWeatherZone string `json:"fireWeatherZone"`
 		TimeZone        string `json:"timeZone"`
 		RadarStation    string `json:"radarStation"`
@@ -123,6 +124,47 @@ func (s NWSAlertsService) GetWeatherAlerts(ctx context.Context, lat, long string
 	//	Our return value
 	retval := AlertReport{}
 	retval.Alerts = []AlertItem{} // Initialize the array
+
+	//	First, call the points service for the lat/long specified
+	pointsUrl := fmt.Sprintf("https://api.weather.gov/points/%s,%s", lat, long)
+	clientRequest, err := http.NewRequest("GET", pointsUrl, nil)
+	if err != nil {
+		seg.AddError(err)
+		return retval, fmt.Errorf("problem creating request to the NWS points service: %v", err)
+	}
+
+	//	Set our headers
+	clientRequest.Header.Set("Content-Type", "application/geo+json; charset=UTF-8")
+
+	//	Execute the request
+	client := &http.Client{}
+	pointClientResponse, err := ctxhttp.Do(ctx, xray.Client(client), clientRequest)
+	if err != nil {
+		seg.AddError(err)
+		return retval, fmt.Errorf("error when sending request to the NWS points service: %v", err)
+	}
+	defer pointClientResponse.Body.Close()
+
+	//	Decode the response:
+	pointsResponse := NWSPointsResponse{}
+	err = json.NewDecoder(pointClientResponse.Body).Decode(&pointsResponse)
+	if err != nil {
+		seg.AddError(err)
+		return retval, fmt.Errorf("problem decoding the response from the NWS points service: %v", err)
+	}
+
+	//	Add the points response to the request metadata
+	seg.AddMetadata("PointsResponse", pointsResponse)
+
+	//	Parse the zone information and add information to the returned report
+	//	TODO: Update to use county
+	retval.Longitude = pointsResponse.Geometry.Coordinates[0]
+	retval.Latitude = pointsResponse.Geometry.Coordinates[1]
+	retval.NWSCounty = pointsResponse.Properties.County
+	countyCode := strings.Replace(retval.NWSCounty, "https://api.weather.gov/zones/county/", "", -1)
+	retval.ActiveAlertsForCountyURL = fmt.Sprintf("https://alerts.weather.gov/cap/wwaatmget.php?x=%s&y=1", countyCode)
+	retval.State = pointsResponse.Properties.RelativeLocation.Properties.State
+	retval.City = pointsResponse.Properties.RelativeLocation.Properties.City
 
 	//	Call the alerts service for the lat/long specified
 	alertsServiceUrl := fmt.Sprintf("https://api.weather.gov/alerts?point=%s,%s", lat, long)
