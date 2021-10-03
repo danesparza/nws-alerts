@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-xray-sdk-go/xray"
@@ -125,48 +124,8 @@ func (s NWSAlertsService) GetWeatherAlerts(ctx context.Context, lat, long string
 	retval := AlertReport{}
 	retval.Alerts = []AlertItem{} // Initialize the array
 
-	//	First, call the points service for the lat/long specified
-	pointsUrl := fmt.Sprintf("https://api.weather.gov/points/%s,%s", lat, long)
-	clientRequest, err := http.NewRequest("GET", pointsUrl, nil)
-	if err != nil {
-		seg.AddError(err)
-		return retval, fmt.Errorf("problem creating request to the NWS points service: %v", err)
-	}
-
-	//	Set our headers
-	clientRequest.Header.Set("Content-Type", "application/geo+json; charset=UTF-8")
-
-	//	Execute the request
-	client := &http.Client{}
-	pointClientResponse, err := ctxhttp.Do(ctx, xray.Client(client), clientRequest)
-	if err != nil {
-		seg.AddError(err)
-		return retval, fmt.Errorf("error when sending request to the NWS points service: %v", err)
-	}
-	defer pointClientResponse.Body.Close()
-
-	//	Decode the response:
-	pointsResponse := NWSPointsResponse{}
-	err = json.NewDecoder(pointClientResponse.Body).Decode(&pointsResponse)
-	if err != nil {
-		seg.AddError(err)
-		return retval, fmt.Errorf("problem decoding the response from the NWS points service: %v", err)
-	}
-
-	//	Add the points response to the request metadata
-	seg.AddMetadata("PointsResponse", pointsResponse)
-
-	//	Parse the zone information and add information to the returned report
-	retval.Longitude = pointsResponse.Geometry.Coordinates[0]
-	retval.Latitude = pointsResponse.Geometry.Coordinates[1]
-	retval.NWSZoneURL = pointsResponse.Properties.ForecastZone
-	retval.NWSZone = strings.Replace(retval.NWSZoneURL, "https://api.weather.gov/zones/forecast/", "", -1)
-	retval.ActiveAlertsForZoneURL = fmt.Sprintf("https://alerts.weather.gov/cap/wwaatmget.php?x=%s&y=1", retval.NWSZone)
-	retval.State = pointsResponse.Properties.RelativeLocation.Properties.State
-	retval.City = pointsResponse.Properties.RelativeLocation.Properties.City
-
-	//	Call the alerts service and get alerts for the parsed zone
-	alertsServiceUrl := fmt.Sprintf("https://api.weather.gov/alerts/active/zone/%s", retval.NWSZone)
+	//	Call the alerts service for the lat/long specified
+	alertsServiceUrl := fmt.Sprintf("https://api.weather.gov/alerts?point=%s,%s", lat, long)
 	alertClientRequest, err := http.NewRequest("GET", alertsServiceUrl, nil)
 	if err != nil {
 		seg.AddError(err)
